@@ -7,3 +7,7 @@ edition = "2018"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
+goldcrest = { git = "https://github.com/Pantonshire/goldcrest" }
+tokio = { version = "0.2", features = ["macros"] }
+chrono = "0.4"
+rand = "0.8"
