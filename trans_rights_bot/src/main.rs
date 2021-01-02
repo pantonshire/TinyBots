@@ -1,4 +1,7 @@
 use rand::Rng;
+use chrono::prelude::*;
+
+const TRANS_FLAG: &'static str = "\u{1f3f3}\u{0fe0f}\u{0200d}\u{026a7}\u{0fe0f}";
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
@@ -33,8 +36,6 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     let client = client.connect().await?;
 
-    let tweet_opts = goldcrest::request::TweetOptions::default();
-
     let weighted_tweet_ids: Vec<(u64, u32)> = vec![
         (1270973597885050880, 10), //Transrightsbot
         (1103565026571489281, 1),  //Nonbinarybot
@@ -61,13 +62,16 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         .find(|(_, w)| rand_w < *w)
         .unwrap().0;
 
-    let tweet = client.get_tweet(tweet_id, tweet_opts.clone()).await?;
+    let now = Utc::now()
+        .format("%d/%m/%y")
+        .to_string();
 
-    if tweet.you_retweeted {
-        client.unretweet(tweet_id, tweet_opts.clone()).await?;
-    }
+    let text = format!("{} {}{}{} https://twitter.com/smolrobots/status/{}",
+        now, TRANS_FLAG, TRANS_FLAG, TRANS_FLAG, tweet_id);
 
-    client.retweet(tweet_id, tweet_opts.clone()).await?;
+    let builder = goldcrest::request::TweetBuilder::new(text);
+
+    client.publish(builder, goldcrest::request::TweetOptions::default()).await?;
 
     Ok(())
 }
