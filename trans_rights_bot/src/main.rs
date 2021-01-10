@@ -37,9 +37,9 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let client = client.connect().await?;
 
     let weighted_tweet_ids: Vec<(u64, u32)> = vec![
-        (1270973597885050880, 10), //Transrightsbot
-        (1103565026571489281, 1),  //Nonbinarybot
-        (1162253080110354433, 1),  //Transbot
+        (1270973597885050880, 6), //Transrightsbot
+        (1103565026571489281, 1), //Nonbinarybot
+        (1162253080110354433, 1), //Transbot
     ];
 
     let total_w = weighted_tweet_ids
