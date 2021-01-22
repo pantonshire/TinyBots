@@ -5,7 +5,7 @@ authors = ["Tom Panton <pantonshire@gmail.com>"]
 edition = "2018"
 
 [dependencies]
-goldcrest = { git = "https://github.com/Pantonshire/goldcrest" }
+goldcrest = { version = "0.2", git = "https://github.com/Pantonshire/goldcrest", branch = "main" }
 tokio = { version = "1.0", features = ["full"] }
 chrono = "0.4"
 rand = "0.8"

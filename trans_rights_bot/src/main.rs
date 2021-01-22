@@ -14,16 +14,20 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     let consumer_key = auth_file
         .next()
-        .expect("auth file does not contain a consumer key");
+        .expect("auth file does not contain a consumer key")
+        .to_owned();
     let consumer_secret = auth_file
         .next()
-        .expect("auth file does not contain a consumer secret");
+        .expect("auth file does not contain a consumer secret")
+        .to_owned();
     let token = auth_file
         .next()
-        .expect("auth file does not contain a token");
+        .expect("auth file does not contain a token")
+        .to_owned();
     let token_secret = auth_file
         .next()
-        .expect("auth file does not contain a token secret");
+        .expect("auth file does not contain a token secret")
+        .to_owned();
 
     let auth = goldcrest::Authentication::new(consumer_key, consumer_secret, token, token_secret);
 
