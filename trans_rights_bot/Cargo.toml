@@ -1,13 +1,11 @@
 [package]
 name = "trans_rights_bot"
-version = "0.1.0"
-authors = ["Thomas Panton <tom@tomandtally.co.uk>"]
+version = "0.2.0"
+authors = ["Tom Panton <pantonshire@gmail.com>"]
 edition = "2018"
-
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
 goldcrest = { git = "https://github.com/Pantonshire/goldcrest" }
-tokio = { version = "0.2", features = ["macros"] }
+tokio = { version = "1.0", features = ["full"] }
 chrono = "0.4"
 rand = "0.8"
