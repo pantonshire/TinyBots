@@ -1,54 +1,41 @@
-use rand::Rng;
-use chrono::prelude::*;
+use std::env;
 
-const TRANS_FLAG: &'static str = "\u{1f3f3}\u{0fe0f}\u{0200d}\u{026a7}\u{0fe0f}";
+use anyhow::Context;
+use chrono::Utc;
+use rand::Rng;
+
+const VAR_GOLDCREST_SCHEME: &str = "GOLDCREST_SCHEME";
+const VAR_GOLDCREST_HOST: &str = "GOLDCREST_HOST";
+const VAR_GOLDCREST_PORT: &str = "GOLDCREST_PORT";
+const VAR_GOLDCREST_REQUEST_TIMEOUT: &str = "GOLDCREST_REQUEST_TIMEOUT";
+const VAR_GOLDCREST_WAIT_TIMEOUT: &str = "GOLDCREST_WAIT_TIMEOUT";
+
+const VAR_TWITTER_CONSUMER_KEY: &str = "TWITTER_CONSUMER_KEY";
+const VAR_TWITTER_CONSUMER_SECRET: &str = "TWITTER_CONSUMER_SECRET";
+const VAR_TWITTER_TOKEN: &str = "TWITTER_TOKEN";
+const VAR_TWITTER_TOKEN_SECRET: &str = "TWITTER_TOKEN_SECRET";
+
+const TRANS_FLAG: &str = "\u{1f3f3}\u{0fe0f}\u{0200d}\u{026a7}\u{0fe0f}";
 
 #[tokio::main]
-async fn main() -> Result<(), Box<dyn std::error::Error>> {
-    let auth_file = include_str!("../auth");
+async fn main() -> anyhow::Result<()> {
+    #[cfg(feature = "dotenv")] {
+        dotenv::dotenv().ok();
+    }
 
-    let mut auth_file = auth_file
-        .lines()
-        .map(str::trim)
-        .filter(|line| !line.is_empty());
-
-    let consumer_key = auth_file
-        .next()
-        .expect("auth file does not contain a consumer key")
-        .to_owned();
-    let consumer_secret = auth_file
-        .next()
-        .expect("auth file does not contain a consumer secret")
-        .to_owned();
-    let token = auth_file
-        .next()
-        .expect("auth file does not contain a token")
-        .to_owned();
-    let token_secret = auth_file
-        .next()
-        .expect("auth file does not contain a token secret")
-        .to_owned();
-
-    let auth = goldcrest::Authentication::new(consumer_key, consumer_secret, token, token_secret);
-
-    let mut client = goldcrest::ClientBuilder::new();
-    client
-        .authenticate(auth)
-        .port(7400)
-        .request_timeout(chrono::Duration::seconds(30))
-        .wait_timeout(chrono::Duration::minutes(60));
-
-    let client = client.connect().await?;
+    let client = connect_goldcrest().await?;
 
     let weighted_tweet_ids: Vec<(u64, u32)> = vec![
         (1270973597885050880, 6), //Transrightsbot
         (1103565026571489281, 1), //Nonbinarybot
         (1162253080110354433, 1), //Transbot
+        (940115273864110080,  1), //Outbot
+        (934112336960544768,  1)  //Genderbot
     ];
 
     let total_w = weighted_tweet_ids
         .iter()
-        .map(|(_,w)| w)
+        .map(|(_, w)| w)
         .sum::<u32>();
 
     let cumulative_tweet_ids: Vec<(u64, u32)> = weighted_tweet_ids
@@ -75,7 +62,78 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     let builder = goldcrest::request::TweetBuilder::new(text);
 
-    client.publish(builder, goldcrest::request::TweetOptions::default()).await?;
+    client.publish(builder, goldcrest::request::TweetOptions::default())
+        .await
+        .context("failed to send tweet")?;
 
     Ok(())
+}
+
+async fn connect_goldcrest() -> anyhow::Result<goldcrest::Client> {
+    let consumer_key = env::var(VAR_TWITTER_CONSUMER_KEY)
+        .context("twitter consumer key missing or invalid")?;
+    let consumer_secret = env::var(VAR_TWITTER_CONSUMER_SECRET)
+        .context("twitter consumer secret missing or invalid")?;
+    let token = env::var(VAR_TWITTER_TOKEN)
+        .context("twitter token missing or invalid")?;
+    let token_secret = env::var(VAR_TWITTER_TOKEN_SECRET)
+        .context("twitter token secret missing or invalid")?;
+
+    let auth = goldcrest::Authentication::new(
+        consumer_key,
+        consumer_secret,
+        token,
+        token_secret
+    );
+
+    let mut client = goldcrest::ClientBuilder::new();
+    client.authenticate(auth);
+
+    if let Some(scheme) = opt_env_var(VAR_GOLDCREST_SCHEME)
+        .context("error reading goldcrest scheme")?
+    {
+        client.scheme(&scheme);
+    }
+
+    if let Some(host) = opt_env_var(VAR_GOLDCREST_HOST)
+        .context("error reading goldcrest host")?
+    {
+        client.host(&host);
+    }
+
+    if let Some(port) = opt_env_var(VAR_GOLDCREST_PORT)
+        .context("error reading goldcrest port")?
+    {
+        let port = port.parse::<u16>()
+            .with_context(|| format!(r#"invalid port "{}""#, port))?;
+        client.port(port as u32);
+    }
+
+    if let Some(timeout) = opt_env_var(VAR_GOLDCREST_REQUEST_TIMEOUT)
+        .context("error reading goldcrest request timeout")?
+    {
+        let timeout = timeout.parse::<i64>()
+            .with_context(|| format!(r#"invalid request timeout "{}""#, timeout))?;
+        client.request_timeout(chrono::Duration::seconds(timeout));
+    }
+
+    if let Some(timeout) = opt_env_var(VAR_GOLDCREST_WAIT_TIMEOUT)
+        .context("error reading goldcrest request timeout")?
+    {
+        let timeout = timeout.parse::<i64>()
+            .with_context(|| format!(r#"invalid wait timeout "{}""#, timeout))?;
+        client.wait_timeout(chrono::Duration::seconds(timeout));
+    }
+
+    client.connect()
+        .await
+        .context("failed to connect to goldcrest")
+}
+
+fn opt_env_var(key: &str) -> Result<Option<String>, env::VarError> {
+    match env::var(key) {
+        Ok(val) => Ok(Some(val)),
+        Err(env::VarError::NotPresent) => Ok(None),
+        Err(err @ env::VarError::NotUnicode(_)) => Err(err),
+    }
 }

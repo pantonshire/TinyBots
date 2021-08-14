@@ -1,0 +1,20 @@
+version: "3.9"
+
+services:
+  transbotbot:
+    build: ./trans_rights_bot
+    restart: unless-stopped
+    environment:
+      GOLDCREST_SCHEME: http
+      GOLDCREST_HOST: goldcrest
+      GOLDCREST_PORT: 80
+      GOLDCREST_REQUEST_TIMEOUT: 30
+      GOLDCREST_WAIT_TIMEOUT: 1200
+      TWITTER_CONSUMER_KEY: "${TWITTER_CONSUMER_KEY}"
+      TWITTER_CONSUMER_SECRET: "${TWITTER_CONSUMER_SECRET}"
+      TWITTER_TOKEN: "${TWITTER_TOKEN}"
+      TWITTER_TOKEN_SECRET: "${TWITTER_TOKEN_SECRET}"
+
+  goldcrest:
+    image: pantonshire/goldcrest
+    restart: unless-stopped

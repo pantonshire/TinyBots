@@ -1,11 +1,17 @@
 [package]
 name = "trans_rights_bot"
-version = "0.2.0"
+version = "0.3.0"
 authors = ["Tom Panton <pantonshire@gmail.com>"]
 edition = "2018"
 
+[features]
+default = ["dotenv", "tonic-rustfmt"]
+tonic-rustfmt = ["goldcrest/tonic-rustfmt"]
+
 [dependencies]
-goldcrest = { version = "0.2", git = "https://github.com/Pantonshire/goldcrest", branch = "main" }
-tokio = { version = "1.0", features = ["full"] }
+goldcrest = { version = "0.3", git = "https://github.com/Pantonshire/goldcrest", branch = "main", default-features = false }
+tokio = { version = "1", features = ["full"] }
 chrono = "0.4"
 rand = "0.8"
+anyhow = "1"
+dotenv = { version = "0.15", optional = true }
