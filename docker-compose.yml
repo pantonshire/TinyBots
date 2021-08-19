@@ -3,7 +3,7 @@ version: "3.9"
 services:
   transbotbot:
     build: ./trans_rights_bot
-    restart: no
+    restart: "no"
     read_only: true
     profiles:
       - bot
