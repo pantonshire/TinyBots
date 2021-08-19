@@ -10,7 +10,9 @@ FROM alpine:latest as runtime
 COPY --from=build /app/target/release/trans_rights_bot /usr/local/bin/trans_rights_bot
 WORKDIR /bot
 COPY docker_runtime/ ./
-RUN addgroup -S bot
-RUN adduser -SDH -G bot bot
-RUN crontab -u bot bot.crontab
-ENTRYPOINT ["/usr/sbin/crond", "-f"]
+RUN chmod 0555 *.sh
+RUN addgroup -S bot \
+    && adduser -SDH -G bot bot
+USER bot
+ENTRYPOINT ["/bin/sh"]
+CMD ["tweet.sh"]
