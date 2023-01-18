@@ -26,11 +26,18 @@ async fn main() -> anyhow::Result<()> {
     let client = connect_goldcrest().await?;
 
     let weighted_tweet_ids: Vec<(u64, u32)> = vec![
-        (1270973597885050880, 6), //Transrightsbot
-        (1103565026571489281, 1), //Nonbinarybot
-        (1162253080110354433, 1), //Transbot
-        (940115273864110080,  1), //Outbot
-        (934112336960544768,  1)  //Genderbot
+        // Transrightsbot
+        (1270973597885050880, 3),
+        // Nonbinarybot
+        (1103565026571489281, 1),
+        // Transbot
+        (1162253080110354433, 1),
+        // Outbot
+        (940115273864110080,  1),
+        // Genderbot
+        (934112336960544768,  1),
+        // Transwrongsbot
+        (1615276641013448704, 3),
     ];
 
     let total_w = weighted_tweet_ids
